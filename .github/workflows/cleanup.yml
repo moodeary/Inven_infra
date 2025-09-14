@@ -1,0 +1,25 @@
+name: Cleanup Docker Resources
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # 매주 일요일 오전 2시
+  workflow_dispatch:     # 수동 실행 가능
+
+jobs:
+  cleanup:
+    runs-on: self-hosted
+    steps:
+      - name: Cleanup unused Docker resources
+        run: |
+          echo "Cleaning up Docker resources..."
+          docker container prune -f
+          docker image prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker system df
+
+      - name: Remove old images (keep last 3)
+        run: |
+          echo "Removing old inventory images..."
+          docker images inven_frontend:* --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | tail -n +2 | sort -k2 -r | tail -n +4 | awk '{print $1}' | xargs -r docker rmi || true
+          docker images inven_backend:* --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | tail -n +2 | sort -k2 -r | tail -n +4 | awk '{print $1}' | xargs -r docker rmi || true

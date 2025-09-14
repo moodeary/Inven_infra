@@ -1,0 +1,41 @@
+name: Deploy Inventory System
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # 배포 작업
+  deploy:
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Stop existing containers
+        run: |
+          docker-compose down || true
+
+      - name: Clean up old images
+        run: |
+          docker image prune -f
+          docker system prune -f --volumes
+
+      - name: Build and deploy
+        run: |
+          docker-compose up --build -d
+
+      - name: Wait for services to be ready
+        run: |
+          sleep 30
+          echo "Checking service health..."
+          curl -f http://localhost:80 || echo "Frontend not ready yet"
+          curl -f http://localhost:8080/actuator/health || echo "Backend not ready yet"
+
+      - name: Deployment status
+        run: |
+          docker-compose ps
