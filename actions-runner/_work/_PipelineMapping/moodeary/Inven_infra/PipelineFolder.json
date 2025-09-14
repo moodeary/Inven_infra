@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "moodeary/Inven_infra",
+  "pipelineDirectory": "Inven_infra",
+  "workspaceDirectory": "Inven_infra\\Inven_infra",
+  "repositories": {
+    "moodeary/Inven_infra": {
+      "repositoryPath": "Inven_infra\\Inven_infra",
+      "lastRunOn": "09/14/2025 19:55:42 +09:00"
+    }
+  },
+  "lastRunOn": "09/14/2025 19:55:42 +09:00"
+}
