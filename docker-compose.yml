@@ -1,6 +1,26 @@
-version: '3.8'
 
 services:
+
+  mariadb:
+    image: mariadb:latest
+    container_name: inventory_mariadb
+    ports:
+      - "3307:3306"   # 로컬 3307포트를 컨테이너 3306포트에 매핑
+    environment:
+      - MYSQL_ROOT_PASSWORD=!jelly0403
+      - MYSQL_DATABASE=inventory
+      - MYSQL_USER=inventory_user
+      - MYSQL_PASSWORD=!jelly0403
+    networks:
+      - app-network
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      timeout: 10s
+      retries: 5
+      interval: 10s
+      start_period: 30s
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
@@ -15,23 +35,35 @@ services:
       - app-network
 
   backend:
-    image: backend-template:latest
-    container_name: spring-backend
+    build:
+      context: ../Inven_backend
+      dockerfile: Dockerfile
+    image: inven_backend:latest
+    container_name: inven_backend
     ports:
       - "8080:8080"
     networks:
       - app-network
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      mariadb:
+        condition: service_healthy
 
   frontend:
-    image: frontend-template:latest
-    container_name: react-frontend
+    build:
+        context: ../Inven_frontend
+        dockerfile: Dockerfile
+    image: inven_frontend:latest
+    container_name: inven_frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mariadb_data:
